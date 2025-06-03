@@ -1,0 +1,99 @@
+<!-- This site is ready to deploy on Netlify. 1. Download all files. 2. Place them in a GitHub repo or ZIP. 3. In Netlify, create a new site from Git > GitHub (or drag & drop ZIP). -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="a2z Pharmacy – Prescription filling, vaccinations, telepharmacy, and more">
+  <title>a2z Pharmacy | Home</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <a href="index.html"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR4nGNkZGJmoAQwUQAACAQC/ounzQAAAABJRU5ErkJggg==" alt="a2z Pharmacy logo"></a>
+    <nav>
+      <div class="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </div>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero" style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR4nGNkZGJmoAQwUQAACAQC/ounzQAAAABJRU5ErkJggg==');">
+    <div class="hero-content">
+      <h1><span style="color:var(--primary-red);">Welcome to a2z</span> Pharmacy</h1>
+      <p>All your pharmacy needs, under one roof.</p>
+      <a href="services.html" class="btn">View Our Services</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature-card">
+      <h3>Fast Prescription Filling</h3>
+      <p>Get your medications quickly and accurately.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Expert Pharmacists &amp; Telepharmacy</h3>
+      <p>Professional advice in-store or online.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Free Home Delivery</h3>
+      <p>Convenient delivery right to your door.</p>
+    </div>
+  </section>
+
+  <section class="services-grid" id="services-preview">
+    <div class="service-card">
+      <h3>Prescription Filling</h3>
+      <p>Fast and accurate service for all prescriptions.</p>
+      <a href="services.html#prescription" class="btn">Learn More</a>
+    </div>
+    <div class="service-card">
+      <h3>Vaccinations</h3>
+      <p>Stay up to date with routine and travel vaccines.</p>
+      <a href="services.html#vaccinations" class="btn">Learn More</a>
+    </div>
+    <div class="service-card">
+      <h3>Online Refills</h3>
+      <p>Refill your prescriptions from any device.</p>
+      <a href="services.html#refills" class="btn">Learn More</a>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="testimonial-slide">
+      <blockquote>"Great service and friendly staff!"</blockquote>
+      <p>- Customer A</p>
+    </div>
+    <div class="testimonial-slide" style="display:none;">
+      <blockquote>"Fast delivery and easy refills."</blockquote>
+      <p>- Customer B</p>
+    </div>
+    <div style="text-align:center; margin-top:1rem;">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>5200 Sunrise Blvd. Suite 7, Fair Oaks, CA 95628</p>
+    <p>Phone: <a href="tel:19165000505">(916) 500-0505</a> | Fax: (916) 500-0590</p>
+    <nav>
+      <a href="index.html">Home</a> |
+      <a href="services.html">Services</a> |
+      <a href="about.html">About</a> |
+      <a href="contact.html">Contact</a>
+    </nav>
+    <p>&copy; <span id="year"></span> a2z Pharmacy</p>
+  </footer>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="js/main.js"></script>
+</body>
+</html>
