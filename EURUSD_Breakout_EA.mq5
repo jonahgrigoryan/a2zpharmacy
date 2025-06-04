@@ -22,34 +22,36 @@
 //+------------------------------------------------------------------+
 //|   Input parameters                                              |
 //+------------------------------------------------------------------+
-input double InpRiskPercent        = 1.0;     // Risk per trade (% equity)
-input double InpStopATRMultiplier  = 1.5;     // Stop = ATR × factor (default)
+input double InpRiskPercent        = 1.5;     // Risk per trade (% equity)
+input double InpStopATRMultiplier  = 2.0;     // Stop = ATR × factor (default)
 input bool   InpUseTakeProfit      = true;    // Use fixed take-profit
-input double InpTP_RR              = 3.0;     // Reward/Risk ratio (ignored if TP disabled)
-input int    InpLookbackBars       = 20;      // Breakout look-back bars (M15)
+input double InpTP_RR              = 2.5;     // Reward/Risk ratio (ignored if TP disabled)
+input int    InpLookbackBars       = 12;      // Breakout look-back bars (M15)
 input int    InpRSIPeriod          = 14;      // RSI period (M15)
 input double InpRSILower           = 40.0;    // Lower RSI bound (neutral)
 input double InpRSIUpper           = 60.0;    // Upper RSI bound (neutral)
 input bool   InpUseRSIFilter       = true;    // Enable RSI neutral-zone filter
 input double InpBreakoutBufferPips = 2.0;     // Extra buffer beyond high/low (pips)
-input double InpBreakoutBufferATR  = 0.2;     // Or ATR × factor (0 = ignore)
+input double InpBreakoutBufferATR  = 0.35;    // Or ATR × factor (increased from 0.2)
+input double InpMinATRPips         = 5.0;     // Minimum ATR in pips to allow trading
+input double InpMaxSpreadPips      = 2.0;     // Maximum spread in pips to allow trading
 
 // Short-term momentum filter on M15
 input bool   InpUseM15ADXFilter    = true;    // Require ADX on M15
 input int    InpM15ADXPeriod       = 14;
-input double InpM15ADXMin          = 25.0;
+input double InpM15ADXMin          = 20.0;    // Reduced from 25.0
 input int    InpTrendMAPeriod      = 200;     // EMA period for H1 trend filter
 input int    InpEMASlopeBars       = 10;      // Bars back to measure EMA slope (H1)
-input double InpEMASlopeMinPips    = 10.0;    // Minimum EMA slope (pips)
+input double InpEMASlopeMinPips    = 7.0;     // Minimum EMA slope (reduced from 10.0)
 input bool   InpUseADXFilter       = true;    // Require ADX trending filter
 input int    InpADXPeriod          = 14;      // ADX period (H1)
-input double InpADXMin             = 30.0;    // Minimum ADX value to allow trading
+input double InpADXMin             = 25.0;    // Reduced from 30.0
 input bool   InpUseDirectionalDI   = true;    // Require DI+>DI- for longs etc.
 
 // Trailing stop parameters
 input bool   InpUseTrailing        = true;    // Enable ATR-based trailing
 input double InpTrailATRMultiplier = 1.0;     // Trail distance = ATR × factor
-input double InpTrailStartRR       = 1.8;     // Begin trailing after price >= RR × SL
+input double InpTrailStartRR       = 2.0;     // Begin trailing after price >= RR × SL (increased from 1.8)
 input double InpBreakevenATR       = 1.0;     // Move SL to BE at +ATR×factor
 
 // Partial-close parameters
@@ -58,9 +60,9 @@ input double InpPartialRR         = 1.0;      // RR level to trigger partial (e.
 input double InpPartialPercent    = 25.0;     // Percent of volume to close at partial (0-100)
 input bool   InpUseTradeHours      = true;    // Restrict trading hours
 input int    InpTradeStartHour     = 6;       // Hour to start trading (server time)
-input int    InpTradeEndHour       = 18;      // Hour to stop  trading (server time)
+input int    InpTradeEndHour       = 23;      // Hour to stop  trading (server time)
 input bool   InpUseDailyLossCut    = true;    // Enable daily loss cut-off
-input double InpDailyLossPct       = 2.0;     // Max daily loss (% equity)
+input double InpDailyLossPct       = 3.0;     // Max daily loss (% equity)
 
 // Volatility filter (skip low-volatility breakout attempts)
 input bool   InpUseATRVolFilter    = true;    // Enable ATR vs average filter
@@ -68,21 +70,22 @@ input int    InpATRVolLookback     = 96;      // How many M15 bars to average (~
 input double InpATRVolFactorMin    = 1.0;     // Require ATR >= factor × average ATR
 
 // Weekday trading filter (allows finer control than hours only)
-input bool   InpTradeMonday        = false;
+input bool   InpTradeMonday        = true;    // Changed from false - will add time check
 input bool   InpTradeTuesday       = true;
 input bool   InpTradeWednesday     = true;
 input bool   InpTradeThursday      = true;
-input bool   InpTradeFriday        = false;
+input bool   InpTradeFriday        = true;    // Changed from false - will add time check
 
 // Time-stop: close positions that stagnate too long
 input bool   InpUseTimeStop        = true;    // Enable time-based exit
-input int    InpMaxHoldingBars     = 64;      // Max bars to keep a trade (on M15) ≈ 16 h
+input int    InpMaxHoldingBars     = 32;      // Max bars to keep a trade (reduced from 64) ≈ 8 h
 input double InpTimeStopProfitRR   = 0.3;     // Require at least this RR, else close
 
 // Loss-streak guard: pause trading after consecutive losing trades
 input bool   InpUseLossStreakGuard = true;
 input int    InpMaxLossStreak      = 5;       // e.g. 5 consecutive losses
 input int    InpCooldownHours      = 24;      // pause trading for this many hours
+input int    InpTradeCooldownBars  = 4;       // Minimum bars between trades (M15)
 
 // Evaluation-protection parameters (FundingPips style)
 input bool   InpUseGlobalDDGuard   = true;    // Stop new trades if equity DD from peak exceeds limit
@@ -101,6 +104,7 @@ static ulong  tracked_ticket   = 0;     // ticket of open position we manage
 static bool   partial_done     = false; // whether partial take-profit already executed
 static int    g_loss_streak    = 0;     // consecutive losing trades
 datetime      g_cooldown_until = 0;     // time until which trading is paused
+static datetime g_last_trade_time = 0;  // time of last trade entry
 
 //--- Performance tracking
 double        g_equity_peak   = 0.0;   // highest equity seen since EA start
@@ -149,14 +153,22 @@ bool IsTradingAllowedToday()
   {
    MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
    int wd = (int)dt.day_of_week; // 0 = Sun
+   int hour = dt.hour;
+   
    switch(wd)
      {
-      case 1: return InpTradeMonday;
-      case 2: return InpTradeTuesday;
-      case 3: return InpTradeWednesday;
-      case 4: return InpTradeThursday;
-      case 5: return InpTradeFriday;
-      default: return false; // Sun/Sat
+      case 1: // Monday - only after 12 UTC
+         return InpTradeMonday && (hour >= 12);
+      case 2: 
+         return InpTradeTuesday;
+      case 3: 
+         return InpTradeWednesday;
+      case 4: 
+         return InpTradeThursday;
+      case 5: // Friday - only until 12 UTC
+         return InpTradeFriday && (hour < 12);
+      default: 
+         return false; // Sun/Sat
      }
   }
   
@@ -184,16 +196,25 @@ double CalcVolumeByRisk(double sl_points)
 
    double risk_pct = InpRiskPercent;
 
-   if(InpScaleRiskOnDD && g_equity_peak > 0.0)
+   // Step-down risk scaling with step-up on new equity highs
+   if(InpScaleRiskOnDD)
      {
-      double dd_pct = (g_equity_peak - equity) / g_equity_peak * 100.0;
-      if(dd_pct > 0)
+      // Update equity peak if we've made a new high
+      if(equity > g_equity_peak)
         {
-         double scale = 1.0 - (dd_pct / InpMaxTotalDDPct);
-         if(scale < 0.0) scale = 0.0;
-         risk_pct = InpRiskPercent * scale;
-         if(risk_pct < InpRiskMinPercent)
-            risk_pct = InpRiskMinPercent;
+         g_equity_peak = equity;  // Reset peak, allowing risk to step back up
+        }
+        
+      if(g_equity_peak > 0.0)
+        {
+         double dd_pct = (g_equity_peak - equity) / g_equity_peak * 100.0;
+         if(dd_pct >= 5.0)  // Step down at 5% DD
+           {
+            risk_pct = InpRiskPercent * 0.5;  // 1.5% becomes 0.75%
+            if(risk_pct < InpRiskMinPercent)
+               risk_pct = InpRiskMinPercent;
+           }
+         // When DD < 5%, risk automatically returns to full InpRiskPercent (1.5%)
         }
      }
 
@@ -501,8 +522,7 @@ void OnTick()
 
    // Update peak equity and apply global drawdown guard
    double equity_now = AccountInfoDouble(ACCOUNT_EQUITY);
-   if(equity_now > g_equity_peak)
-       g_equity_peak = equity_now;
+   // Peak update now handled in CalcVolumeByRisk for risk step-up/down control
 
    if(InpUseGlobalDDGuard && g_equity_peak > 0.0)
      {
@@ -527,6 +547,14 @@ void OnTick()
    // Return if a position is already open (one trade at a time)
    if(PositionSelect(_Symbol))
       return;
+
+   // Check trade cooldown period
+   if(g_last_trade_time > 0)
+     {
+      int bars_since_trade = int((TimeCurrent() - g_last_trade_time) / PeriodSeconds(PERIOD_M15));
+      if(bars_since_trade < InpTradeCooldownBars)
+         return;
+     }
 
    // Check trading hours filter
    if(InpUseTradeHours)
@@ -579,7 +607,25 @@ void OnTick()
         {
          breakout_high = iHigh(_Symbol, PERIOD_M15, highest_index);
          breakout_low  = iLow (_Symbol, PERIOD_M15, lowest_index );
-         breakout_levels_valid = true;
+         
+         // Check minimum range width (must be >= 1 × ATR)
+         double atr_check;
+         if(CopyBufferValue(handleATR, 0, 1, atr_check))
+           {
+            double range_width = breakout_high - breakout_low;
+            if(range_width < atr_check * 1.0)  // Minimum 1 ATR range
+              {
+               breakout_levels_valid = false;
+              }
+            else
+              {
+               breakout_levels_valid = true;
+              }
+           }
+         else
+           {
+            breakout_levels_valid = false;
+           }
         }
 
       // Reset trade execution flag for new bar
@@ -591,6 +637,11 @@ void OnTick()
    // Fetch indicator data (previous closed bar shift = 1)
    double atr_prev;
    if(!CopyBufferValue(handleATR, 0, 1, atr_prev)) return;
+   
+   // Check minimum ATR requirement
+   int pip_divisor = (_Digits == 3 || _Digits == 5) ? 10 : 1;
+   double atr_in_pips = atr_prev / (_Point * pip_divisor);
+   if(atr_in_pips < InpMinATRPips) return; // Skip if volatility too low
 
    double rsi_prev;
    if(!CopyBufferValue(handleRSI, 0, 1, rsi_prev)) return;
@@ -610,13 +661,14 @@ void OnTick()
    double ema_old;
    if(!CopyBufferValue(handleEMA, 0, InpEMASlopeBars, ema_old)) return;
 
-   double ema_diff = (ema_h1 - ema_old) / _Point; // in points
-   int pip_in_points = int(MathPow(10, _Digits - 1));
-   if(pip_in_points <= 0) pip_in_points = 1;
-   double slope_min_points = InpEMASlopeMinPips * pip_in_points; // convert pips->points based on digits
+   double ema_diff = (ema_h1 - ema_old) / _Point;  // still "points"
 
-   if(trend_dir == 1 && ema_diff < slope_min_points) return; // not strong up slope
-   if(trend_dir == -1 && (-ema_diff) < slope_min_points) return; // not strong down slope
+   // Replace the MathPow formula with a simple 5-digit / 4-digit check:
+   int pip_in_points = (_Digits == 3 || _Digits == 5) ? 10 : 1;
+   double slope_min_points = InpEMASlopeMinPips * pip_in_points;
+   
+   if(trend_dir == 1 && ema_diff < slope_min_points) return;
+   if(trend_dir == -1 && (-ema_diff) < slope_min_points) return;
 
    // ADX filter
    if(InpUseADXFilter && handleADX != INVALID_HANDLE)
@@ -646,6 +698,22 @@ void OnTick()
 
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   
+   // Check spread filter
+   double spread = ask - bid;
+   double spread_pips = spread / (_Point * pip_divisor);
+   if(spread_pips > InpMaxSpreadPips) return; // Skip if spread too wide
+   
+   // Momentum confirmation: Check last 3 candles are trending in breakout direction
+   double close1 = iClose(_Symbol, PERIOD_M15, 1);
+   double close2 = iClose(_Symbol, PERIOD_M15, 2);
+   double close3 = iClose(_Symbol, PERIOD_M15, 3);
+   double open1  = iOpen(_Symbol, PERIOD_M15, 1);
+   double open2  = iOpen(_Symbol, PERIOD_M15, 2);
+   double open3  = iOpen(_Symbol, PERIOD_M15, 3);
+   
+   bool bullish_momentum = (close1 > open1) && (close2 > open2) && (close1 > close2);
+   bool bearish_momentum = (close1 < open1) && (close2 < open2) && (close1 < close2);
 
    // Adaptive breakout buffer: max(fixed pips, ATR×factor)
    double fixed_buf_price = InpBreakoutBufferPips * 10 * _Point; // pips->price assuming 5-digit
@@ -657,7 +725,7 @@ void OnTick()
    double volume   = 0.0;
 
    // Long breakout condition: price crosses above breakout_high + buffer
-   if(trend_dir == 1 && ask >= breakout_high + brk_buffer)
+   if(trend_dir == 1 && ask >= breakout_high + brk_buffer && bullish_momentum)
      {
       double sl_distance = atr_prev * InpStopATRMultiplier;
       sl_price = ask - sl_distance;
@@ -668,11 +736,14 @@ void OnTick()
       volume   = CalcVolumeByRisk(sl_distance / _Point);
 
       if(volume > 0 && trade.Buy(volume, _Symbol, ask, sl_price, tp_price, "EURUSD_breakout_buy"))
+        {
          tradeExecutedThisBar = true;
+         g_last_trade_time = TimeCurrent();
+        }
      }
 
    // Short breakout condition: price falls below breakout_low
-   if(!tradeExecutedThisBar && trend_dir == -1 && bid <= breakout_low - brk_buffer)
+   if(!tradeExecutedThisBar && trend_dir == -1 && bid <= breakout_low - brk_buffer && bearish_momentum)
      {
       double sl_distance = atr_prev * InpStopATRMultiplier;
       sl_price = bid + sl_distance;
@@ -683,12 +754,14 @@ void OnTick()
       volume   = CalcVolumeByRisk(sl_distance / _Point);
 
       if(volume > 0 && trade.Sell(volume, _Symbol, bid, sl_price, tp_price, "EURUSD_breakout_sell"))
+        {
          tradeExecutedThisBar = true;
+         g_last_trade_time = TimeCurrent();
+        }
      }
   }
 
 
 // 
-
 
 
