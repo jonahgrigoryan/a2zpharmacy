@@ -17,7 +17,6 @@
 //   • Optional daily loss cut-off
 //   • Optional trading hours filter
 
-//fix error line 152
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
@@ -123,6 +122,10 @@ const int ADX_MINUSDI= 2;
 double GetTodayProfitLoss()
   {
    datetime today_start = StringToTime(TimeToString(TimeCurrent(), TIME_DATE)); // midnight of server time
+
+   // ensure history data is loaded
+   HistorySelect(today_start, TimeCurrent());
+
    double profit = 0.0;
    uint total = HistoryDealsTotal();
    for(uint i = 0; i < total; ++i)
@@ -136,23 +139,25 @@ double GetTodayProfitLoss()
          profit += HistoryDealGetDouble(ticket, DEAL_PROFIT);
      }
 
-   // Weekday filter (server time): allows trading only on specified days
-   {
-      MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
-      int wd = (int)dt.day_of_week; // 0 = Sun
-      bool allow = false;
-      switch(wd)
-        {
-         case 1: allow = InpTradeMonday;    break;
-         case 2: allow = InpTradeTuesday;   break;
-         case 3: allow = InpTradeWednesday; break;
-         case 4: allow = InpTradeThursday;  break;
-         case 5: allow = InpTradeFriday;    break;
-         default: allow = false;            break; // Sun/Sat
-        }
-      if(!allow) return 0.0; // Return 0.0 if trading is not allowed
-   }
-   return profit;
+  return profit;
+ }
+
+//+------------------------------------------------------------------+
+//|   Helper: check if trading is allowed today (weekday filter)      |
+//+------------------------------------------------------------------+
+bool IsTradingAllowedToday()
+  {
+   MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
+   int wd = (int)dt.day_of_week; // 0 = Sun
+   switch(wd)
+     {
+      case 1: return InpTradeMonday;
+      case 2: return InpTradeTuesday;
+      case 3: return InpTradeWednesday;
+      case 4: return InpTradeThursday;
+      case 5: return InpTradeFriday;
+      default: return false; // Sun/Sat
+     }
   }
   
 // 
@@ -533,6 +538,10 @@ void OnTick()
          return;
      }
 
+   // Weekday trading filter
+   if(!IsTradingAllowedToday())
+      return;
+
    // Daily loss cut-off
    if(InpUseDailyLossCut)
      {
@@ -602,7 +611,9 @@ void OnTick()
    if(!CopyBufferValue(handleEMA, 0, InpEMASlopeBars, ema_old)) return;
 
    double ema_diff = (ema_h1 - ema_old) / _Point; // in points
-   double slope_min_points = InpEMASlopeMinPips * 10; // convert pips->points (assuming 5-digit broker)
+   int pip_in_points = int(MathPow(10, _Digits - 1));
+   if(pip_in_points <= 0) pip_in_points = 1;
+   double slope_min_points = InpEMASlopeMinPips * pip_in_points; // convert pips->points based on digits
 
    if(trend_dir == 1 && ema_diff < slope_min_points) return; // not strong up slope
    if(trend_dir == -1 && (-ema_diff) < slope_min_points) return; // not strong down slope
