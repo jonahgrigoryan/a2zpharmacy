@@ -1,0 +1,75 @@
+Expert:	EURUSD_Breakout_EA
+Symbol:	EURUSD
+Period:	M15 (2022.01.01 - 2025.01.01)
+Inputs:	InpRiskPercent=1.0
+InpStopATRMultiplier=1.5
+InpUseTakeProfit=true
+InpTP_RR=3.0
+InpLookbackBars=20
+InpRSIPeriod=14
+InpRSILower=40.0
+InpRSIUpper=60.0
+InpUseRSIFilter=true
+InpBreakoutBufferPips=2.0
+InpBreakoutBufferATR=0.2
+InpUseM15ADXFilter=true
+InpM15ADXPeriod=14
+InpM15ADXMin=25.0
+InpTrendMAPeriod=200
+InpEMASlopeBars=10
+InpEMASlopeMinPips=10.0
+InpUseADXFilter=true
+InpADXPeriod=14
+InpADXMin=30.0
+InpUseDirectionalDI=true
+InpUseTrailing=true
+InpTrailATRMultiplier=1.0
+InpTrailStartRR=1.8
+InpBreakevenATR=1.0
+InpUsePartialClose=true
+InpPartialRR=1.0
+InpPartialPercent=25.0
+InpUseTradeHours=true
+InpTradeStartHour=6
+InpTradeEndHour=18
+InpUseDailyLossCut=true
+InpDailyLossPct=2.0
+InpUseATRVolFilter=true
+InpATRVolLookback=96
+InpATRVolFactorMin=1.0
+InpTradeMonday=false
+InpTradeTuesday=true
+InpTradeWednesday=true
+InpTradeThursday=true
+InpTradeFriday=false
+InpUseTimeStop=true
+InpMaxHoldingBars=64
+InpTimeStopProfitRR=0.3
+InpUseLossStreakGuard=true
+InpMaxLossStreak=5
+InpCooldownHours=24
+InpUseGlobalDDGuard=true
+InpMaxTotalDDPct=9.5
+InpScaleRiskOnDD=true
+InpRiskMinPercent=0.25
+Company:	MetaQuotes Ltd.
+Currency:	USD
+Initial Deposit:	100 000.00
+Leverage:	1:100
+Results
+History Quality:	99%
+Bars:	74633	Ticks:	65548616	Symbols:	1
+Total Net Profit:	-1 545.14	Balance Drawdown Absolute:	2 805.84	Equity Drawdown Absolute:	2 891.97
+Gross Profit:	12 533.24	Balance Drawdown Maximal:	5 358.78 (5.23%)	Equity Drawdown Maximal:	7 570.22 (7.23%)
+Gross Loss:	-14 078.38	Balance Drawdown Relative:	5.23% (5 358.78)	Equity Drawdown Relative:	7.23% (7 570.22)
+Profit Factor:	0.89	Expected Payoff:	-36.79	Margin Level:	225.43%
+Recovery Factor:	-0.20	Sharpe Ratio:	-2.78	Z-Score:	0.56 (42.45%)
+AHPR:	0.9997 (-0.03%)	LR Correlation:	-0.60	OnTester result:	0
+GHPR:	0.9996 (-0.04%)	LR Standard Error:	1 166.25		
+Total Trades:	42	Short Trades (won %):	25 (44.00%)	Long Trades (won %):	17 (29.41%)
+Total Deals:	83	Profit Trades (% of total):	16 (38.10%)	Loss Trades (% of total):	26 (61.90%)
+Largest profit trade:	2 617.81	Largest loss trade:	-1 055.01
+Average profit trade:	783.33	Average loss trade:	-541.48
+Maximum consecutive wins ($):	3 (2 303.26)	Maximum consecutive losses ($):	9 (-3 913.34)
+Maximal consecutive profit (count):	4 292.69 (2)	Maximal consecutive loss (count):	-3 913.34 (9)
+Average consecutive wins:	1	Average consecutive losses:	2
